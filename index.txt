@@ -1,1 +1,33 @@
-Hello
+i need pipeline script to trigger submodules for microservice nodejs application and i need to build docker compose file for just the service has last commited 
+
+Here's an example pipeline script in Jenkinsfile that triggers submodules for a microservice Node.js application and builds a Docker Compose file for the service that has the last committed changes:
+
+groovy
+
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Submodule Update') {
+            steps {
+                sh 'git submodule update --init --recursive'
+            }
+        }
+        stage('Build Docker Compose') {
+            steps {
+                script {
+                    def serviceName = sh(script: 'git log -1 --name-only --pretty=format:"" HEAD | grep services/ | head -1 | cut -d / -f 2', returnStdout: true).trim()
+                    sh "docker-compose build ${serviceName}"
+                }
+            }
+        }
+    }
+}
+
+In this script, the first stage checks out the source code from the repository. The second stage updates any submodules in the repository. The third stage uses the git log command to determine the name of the service that has the last committed changes. It then builds a Docker Compose file for that service using the docker-compose command.
+
+Note that this pipeline assumes that you have a Docker Compose file for each microservice in your application, and that each service is located in a services directory within the repository. You may need to adjust the commands used in the pipeline to match your specific project structure.
